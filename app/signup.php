@@ -21,6 +21,7 @@ function validatePostData($db) {
   $validation->username = $username;
   $validation->email = $email;
   $validation->password = $password;
+  $validation->password2 = $password2;
 
   if($_SESSION['token'] != $token) {
     $validation->error = true;
@@ -67,7 +68,7 @@ function validatePostData($db) {
     $row = $emailExists->fetch();
     if($row['id']) {
       $validation->error = true;
-      $validation->message = "Username already taken";
+      $validation->message = "Email already taken";
       return $validation;
     }
   }
@@ -96,13 +97,14 @@ function validatePostData($db) {
 if(isset($_POST['signup'])) {
   $validation = validatePostData($db);
   if($validation->error == false) {
-    $query = $db->prepare("INSERT INTO users (username, email, password) VALUES (:username, :email, :password");
+    $query = $db->prepare("INSERT INTO users (username, email, password) VALUES (:username, :email, :password);");
     $query->bindParam(':username', $validation->username);
     $query->bindParam(':email', $validation->email);
     $query->bindParam(':password', password_hash($validation->password, PASSWORD_BCRYPT));
     try{
       $query->execute();
       $_SESSION['uid'] = $db->lastInsertId();
+      $_SESSION['username'] = $validation->username;
     }
     catch( PDOExecption $e) {
       print "Error!: " . $e->getMessage() . "</br>";
